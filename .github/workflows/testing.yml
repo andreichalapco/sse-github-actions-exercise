@@ -1,0 +1,62 @@
+name: Testing workflow
+
+on: [push]
+
+jobs:
+  style_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.10'
+      - name: "Install style checker"
+        run: pip install --user black
+      - name: "Run style check"
+        run: black --check .
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.10'
+      - name: "Install dependencies"
+        run: pip install numpy matplotlib
+      - name: "Install test framework"
+        run: pip install --user pytest
+      - name: "Install coverege framework"
+        run: pip install --user coverage
+      - name: "Run tests"
+        run: coverage run -m pytest
+      - name: "Upload Artifacts"
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage
+          path: .coverage
+          retention-days: 1
+  coverage_report:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.10'
+      - name: "Install dependencies"
+        run: pip install --user coverage
+      - name: "Download the artifacts" 
+        uses: actions/download-artifact@v2
+        with: 
+          name: coverage
+      - name: "Run coverage report"   
+        run: coverage report
+      - name: "Run coverage xml"   
+        run: coverage xml
+      - name: "Upload coverage Artifacts"
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage_report
+          path: coverage.xml
+          retention-days: 14
+        
